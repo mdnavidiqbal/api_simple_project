@@ -1,4 +1,18 @@
-console.log("I am here ");
+const createElements = (arr) =>{
+    const htmlElements = arr.map((el) => `<span class = "btn">${el}</span>`);
+    return (htmlElements.join(" "));
+};
+
+const manageSpinner = (status) =>{
+    if(status == true){
+        document.getElementById("spinner").classList.remove("hidden");
+        document.getElementById("word-container").classList.add("hidden");
+    }else{
+        document.getElementById("word-container").classList.remove("hidden");
+        document.getElementById("spinner").classList.add("hidden");
+    }
+}
+
 
 const loadLessons = () => {
     fetch("https://openapi.programming-hero.com/api/levels/all")
@@ -6,12 +20,13 @@ const loadLessons = () => {
         .then((json) => displayLesson(json.data));
 };
 
-const removeActive = () =>{
+const removeActive = () => {
     const lessonButton = document.querySelectorAll(".lesson-btn");
-    lessonButton.forEach(btn=> btn.classList.remove("active"));
+    lessonButton.forEach(btn => btn.classList.remove("active"));
 };
 
 const loadLevelWorld = (id) => {
+    manageSpinner(true);
     const url = `https://openapi.programming-hero.com/api/level/${id}`;
     fetch(url)
         .then(res => res.json())
@@ -23,8 +38,36 @@ const loadLevelWorld = (id) => {
         })
 }
 
+const loadWordDetail = async (id) => {
+    const url = `https://openapi.programming-hero.com/api/word/${id}`;
+    const res = await fetch(url);
+    const details = await res.json();
+    displayWordDetails(details.data);
+}
 
-
+const displayWordDetails = (word) => {
+    console.log(word);
+    const detailsCard = document.getElementById("details-container");
+    detailsCard.innerHTML = `
+        <div>
+            <h2 class="text-2xl font-bold">${word.word}(<i class="fa-solid fa-microphone-lines"></i>:${word.pronunciation})</h2>
+        </div>
+        <div>
+            <h2 class="font-bold">Meaining</h2>
+            <p>${word.meaning}</p>
+        </div>
+        <div>
+            <h2 class="font-bold">Example</h2>
+            <p>${word.sentence}</p>
+        </div>
+         <div>
+            <h2 class="font-bold">সমার্থক শব্দ গুলো</h2>
+            <div class="">${createElements(word.synonyms)}</div>
+        </div>
+    
+    `;
+    document.getElementById("word_modal").showModal();
+}
 // {
 //     "id": 71,
 //     "level": 1,
@@ -39,7 +82,7 @@ const displayLevelWord = (words) => {
     const wordContainer = document.getElementById("word-container");
     wordContainer.innerHTML = "";
 
-    if(words.length === 0){
+    if (words.length === 0) {
         wordContainer.innerHTML = `
          <div class="text-center col-span-full py-10 space-y-5  rounded-lg bangla_font">
          <img class ="mx-auto" src="./assets/alert-error.png">
@@ -47,6 +90,7 @@ const displayLevelWord = (words) => {
             <h2 class="text-3xl font-semibold mb-8">নেক্সট Lesson এ যান</h2>
        </div>        
         `;
+        manageSpinner(false);
         return;
     }
     // 2.Get the all elemen
@@ -58,15 +102,17 @@ const displayLevelWord = (words) => {
          <div class="bg-white rounded-xl shadow-sm text-center px-10 py-10 space-y-3">
             <h2 class="font-bold text-2xl">${word.word ? word.word : "No word found"}</h2>
             <p class="font-semibold">Meaning/Pronounciation</p>
-            <div class="font-semibold text-2xl bangla_font">"${word.meaning ? word.meaning :"No word meaning found"} / ${word.pronunciation ? word.pronunciation:"No pronunciation found"}"</div>
+            <div class="font-semibold text-2xl bangla_font">"${word.meaning ? word.meaning : "No word meaning found"} / ${word.pronunciation ? word.pronunciation : "No pronunciation found"}"</div>
             <div class="flex justify-between items-center">
-                <button onclick="my_modal_1.showModal()" class="btn bg-[#1A91FF10] hover:bg-[#1A91FF80]"><i class="fa-solid fa-circle-info"></i></button>
+                <button onclick="loadWordDetail(${word.id})" class="btn bg-[#1A91FF10] hover:bg-[#1A91FF80]"><i class="fa-solid fa-circle-info"></i></button>
                 <button class="btn bg-[#1A91FF10] hover:bg-[#1A91FF80]"><i class="fa-solid fa-volume-high"></i></button>
             </div>
         </div>
         `;
         wordContainer.append(card);
-    })
+    });
+
+    manageSpinner(false);
 }
 
 const displayLesson = (lessons) => {
